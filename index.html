@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PERPLEXED Interactive Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+
+        .main-title {
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #3B82F6, #8B5CF6, #EC4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #94A3B8;
+            font-size: 1.2rem;
+        }
+
+        .persona-selector {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(10px);
+            border: 2px solid #334155;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .persona-selector label {
+            display: block;
+            color: #E2E8F0;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .persona-selector select {
+            width: 100%;
+            background: rgba(51, 65, 85, 0.8);
+            border: 1px solid #475569;
+            border-radius: 12px;
+            padding: 16px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .persona-selector select:hover {
+            border-color: #8B5CF6;
+        }
+
+        .persona-selector select:focus {
+            outline: none;
+            border-color: #8B5CF6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+
+        .chat-container {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 24px;
+            height: 500px;
+            overflow-y: auto;
+            margin-bottom: 24px;
+            scroll-behavior: smooth;
+        }
+
+        .chat-bubble {
+            padding: 16px 20px;
+            border-radius: 16px;
+            margin: 12px 0;
+            max-width: 75%;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .system-bubble {
+            background: rgba(139, 92, 246, 0.2);
+            color: #C4B5FD;
+            margin: 0 auto;
+            text-align: center;
+            font-style: italic;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .user-bubble {
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot-bubble {
+            background: rgba(30, 41, 59, 0.8);
+            color: #E2E8F0;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+            border-left: 3px solid var(--persona-color, #8B5CF6);
+        }
+
+        .bubble-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .bubble-text {
+            line-height: 1.6;
+        }
+
+        .input-section {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .input-field {
+            flex: 1;
+            background: rgba(51, 65, 85, 0.8);
+            border: 1px solid #475569;
+            border-radius: 12px;
+            padding: 16px;
+            color: white;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 60px;
+            font-family: inherit;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #8B5CF6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+
+        .input-field::placeholder {
+            color: #64748B;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #8B5CF6, #EC4899);
+            border: none;
+            border-radius: 12px;
+            padding: 16px 32px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: #475569;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .voice-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid #334155;
+        }
+
+        .btn-voice {
+            background: linear-gradient(135deg, #EC4899, #8B5CF6);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-voice:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(236, 72, 153, 0.4);
+        }
+
+        .btn-voice.listening {
+            background: linear-gradient(135deg, #EF4444, #DC2626);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .btn-stop {
+            background: #475569;
+        }
+
+        .btn-stop:hover {
+            background: #64748B;
+        }
+
+        .btn-stop.speaking {
+            background: #10B981;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-text {
+            color: #94A3B8;
+            font-size: 0.9rem;
+        }
+
+        .footer {
+            text-align: center;
+            background: rgba(30, 41, 59, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 24px;
+            color: #64748B;
+        }
+
+        .footer strong {
+            color: #94A3B8;
+        }
+
+        .chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 10px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 10px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: #64748B;
+        }
+
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2rem;
+            }
+            
+            .input-row {
+                flex-direction: column;
+            }
+            
+            .voice-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="main-title">🤖 PERPLEXED Interactive Chatbot</h1>
+            <p class="subtitle">Meet our virtual department heads — part of the PERPLEXED business-case showcase!</p>
+        </div>
+
+        <div class="persona-selector">
+            <label for="personaSelect">🎭 Choose a Department Head:</label>
+            <select id="personaSelect"></select>
+        </div>
+
+        <div class="chat-container" id="chatContainer"></div>
+
+        <div class="input-section">
+            <div class="input-row">
+                <textarea 
+                    id="userInput" 
+                    class="input-field" 
+                    placeholder="Ask about revenue, operations, culture, campaigns, or anything else..."
+                    rows="2"
+                ></textarea>
+                <button id="sendBtn" class="btn">
+                    <span>📤</span>
+                    <span>Send</span>
+                </button>
+            </div>
+
+            <div class="voice-controls">
+                <button id="voiceBtn" class="btn-voice">
+                    <span id="micIcon">🎤</span>
+                    <span id="voiceBtnText">Start Recording</span>
+                </button>
+                <button id="stopSpeakBtn" class="btn-stop">
+                    <span id="speakerIcon">🔇</span>
+                    <span id="stopSpeakText">Muted</span>
+                </button>
+                <span id="statusText" class="status-text"></span>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>💡 <strong>Tip:</strong> Ask specific questions about revenue, operations, culture, or campaigns to unlock detailed insights!</p>
+            <p style="margin-top: 8px;">🎯 Visit us at <strong>PERPLEXED on 13th November</strong> for the full business-case experience!</p>
+        </div>
+    </div>
+
+    <script>
+        const PERSONAS = {
+            CFO: {
+                name: "Karan Malhotra",
+                title: "Chief Financial Officer",
+                emoji: "💼",
+                color: "#3B82F6",
+                voicePitch: 0.8,
+                voiceRate: 0.95,
+                intro: "I'm Karan Malhotra, Finance Head at PERPLEXED. I oversee all financial operations, from budgeting to investor relations. Numbers reveal our story, and I'm here to walk you through our fiscal strategy.",
+                knowledge: {
+                    revenue: "Our Q3 revenue grew 23% YoY to ₹450 crores, driven primarily by our digital transformation initiatives and expansion into tier-2 cities.",
+                    profit: "Net profit margins improved from 12% to 15.8% this quarter through strategic cost optimization and operational efficiency improvements.",
+                    budget: "We allocated ₹85 crores for R&D this year, 18% of our total budget, focusing on AI-driven analytics and customer intelligence platforms.",
+                    investment: "We secured Series B funding of ₹200 crores led by Sequoia Capital, valuing us at ₹1,800 crores post-money.",
+                    expenses: "Major expenses include cloud infrastructure (22%), talent acquisition (31%), and marketing (27%). We've reduced overhead costs by 14% through automation.",
+                    forecast: "We're projecting 35% revenue growth next fiscal year, targeting ₹600 crores with improved EBITDA margins of 18-20%.",
+                    audit: "Our recent audit revealed strong compliance with GAAP standards, though we identified opportunities to optimize working capital by ₹45 crores.",
+                    data: "Our financial data shows consistent quarter-over-quarter growth with strong unit economics and improving cash flow generation.",
+                    sales: "Sales team performance exceeded targets by 18% this quarter, with average deal size increasing from ₹12 lakhs to ₹16.5 lakhs.",
+                    numbers: "Key numbers: 15.8% net margin, ₹450 Cr revenue, 35% YoY growth, ₹200 Cr Series B raised, ₹1,800 Cr valuation."
+                },
+                quotes: [
+                    "Finance is the backbone of every great idea.",
+                    "Numbers tell stories — if you listen carefully.",
+                    "We're optimizing every transaction for sustainable growth."
+                ]
+            },
+            COO: {
+                name: "Neha Bansal",
+                title: "Chief Operating Officer",
+                emoji: "⚙️",
+                color: "#10B981",
+                voicePitch: 1.1,
+                voiceRate: 1.05,
+                intro: "Hi, I'm Neha Bansal, COO of PERPLEXED. I manage our day-to-day operations, supply chain, and process optimization. My mission is to turn strategy into execution.",
+                knowledge: {
+                    operations: "We've streamlined our supply chain, reducing delivery time from 72 hours to 36 hours across 85% of our service areas through predictive logistics.",
+                    efficiency: "Implemented lean six sigma principles across 12 processes, resulting in 28% productivity gains and 40% reduction in operational bottlenecks.",
+                    scale: "We're operating in 45 cities now, up from 28 last year, with plans to reach 75 cities by Q2 next year while maintaining service quality.",
+                    technology: "Deployed IoT sensors across our fulfillment centers, achieving 99.4% inventory accuracy and reducing stockouts by 67%.",
+                    team: "Our operations team grew from 340 to 580 members, with specialized units for quality control, logistics, and customer experience management.",
+                    challenges: "Main challenges include last-mile delivery optimization in tier-3 cities and managing seasonal demand spikes. We're piloting drone delivery in 3 locations.",
+                    audit: "Operational audit highlighted our vendor management excellence but recommended improvements in backup supplier relationships and disaster recovery protocols.",
+                    delivery: "Our delivery network covers 45 cities with 36-hour turnaround time and 99.2% on-time delivery rate.",
+                    supply: "Supply chain optimization reduced costs by 22% while improving reliability through multi-vendor partnerships and predictive analytics."
+                },
+                quotes: [
+                    "Operations are like gears — smooth until someone forgets the oil.",
+                    "We're streamlining complexity one process at a time.",
+                    "Efficiency isn't just speed; it's precision."
+                ]
+            },
+            HR: {
+                name: "Meera Patel",
+                title: "Head of Human Resources",
+                emoji: "💬",
+                color: "#F59E0B",
+                voicePitch: 1.2,
+                voiceRate: 1.0,
+                intro: "Hello, I'm Meera Patel from HR — we build culture that lasts. I lead talent acquisition, employee development, and organizational culture initiatives at PERPLEXED.",
+                knowledge: {
+                    culture: "We've built a culture centered on innovation, transparency, and work-life harmony. Our employee satisfaction score is 8.7/10, above industry average of 7.2.",
+                    hiring: "Hired 250+ professionals this year across tech, operations, and business development. Our acceptance rate for offers is 87%, reflecting strong employer branding.",
+                    retention: "Employee retention rate of 91% — significantly higher than industry standard of 78%. We attribute this to our mentorship programs and growth opportunities.",
+                    development: "Invested ₹12 crores in L&D programs, offering 40+ courses on leadership, technical skills, and soft skills. 65% of employees completed at least one certification.",
+                    diversity: "Achieved 42% women representation across all levels, with focused initiatives for STEM hiring and leadership development programs for underrepresented groups.",
+                    benefits: "Comprehensive benefits including mental health support, flexible working, unlimited sick leave, parental leave (6 months), and education reimbursement up to ₹3 lakhs.",
+                    audit: "HR audit showed exemplary compliance with labor laws and diversity metrics, with recommendations to expand our wellness programs and succession planning frameworks.",
+                    employee: "Our 580+ employees are our greatest asset, with industry-leading satisfaction scores and retention rates.",
+                    people: "People-first approach drives everything we do - from hiring to development to creating an inclusive workplace."
+                },
+                quotes: [
+                    "People before profits — always.",
+                    "We're building more than a team; we're building a legacy.",
+                    "Every voice matters here — including yours!"
+                ]
+            },
+            MARKETING: {
+                name: "Raghav Nair",
+                title: "Head of Marketing",
+                emoji: "📈",
+                color: "#EC4899",
+                voicePitch: 1.0,
+                voiceRate: 1.1,
+                intro: "Hey there! I'm Raghav from Marketing — turning insights into stories that resonate. I lead brand strategy, digital marketing, and customer engagement at PERPLEXED.",
+                knowledge: {
+                    campaigns: "Our recent 'Innovation for Everyone' campaign reached 50 million users, generating 2.3 million engagements and driving 35% increase in brand awareness.",
+                    digital: "Digital channels contribute 68% of our customer acquisition. Instagram and LinkedIn are our top performers with 4.2% and 3.8% engagement rates respectively.",
+                    branding: "Brand value increased 42% to ₹850 crores according to Brand Finance. We're now ranked #3 in our category, up from #7 last year.",
+                    customer: "Customer acquisition cost decreased from ₹1,850 to ₹1,240 while lifetime value increased 31% to ₹18,500 through personalized retention strategies.",
+                    content: "Published 340+ pieces of thought leadership content, generating 5 million organic impressions. Our blog traffic grew 215% year-over-year.",
+                    partnerships: "Secured strategic partnerships with 8 major brands for co-marketing initiatives, expanding our reach to 22 million new potential customers.",
+                    audit: "Marketing audit revealed strong ROI across channels (4.2x average), with opportunities to optimize spend allocation between performance and brand-building activities.",
+                    brand: "Our brand value reached ₹850 crores, ranking #3 in category with 42% growth year-over-year.",
+                    campaign: "Multi-channel campaigns achieve 4.2x ROI with strong performance across digital, social, and traditional media."
+                },
+                quotes: [
+                    "We make ordinary things irresistible.",
+                    "Every click counts — especially yours.",
+                    "Branding is strategy with a smile."
+                ]
+            }
+        };
+
+        const EVENT_CONTEXT = "Welcome to PERPLEXED — a live business-case showcase where visitors explore how different company departments work together. You can chat with our virtual leaders to uncover stories behind the audit!";
+
+        let currentPersona = 'CFO';
+        let messages = [];
+        let recognition = null;
+        let isListening = false;
+        let isSpeaking = false;
+
+        // Initialize
+        function init() {
+            populatePersonaSelect();
+            initSpeechRecognition();
+            initEventListeners();
+            resetChat();
+        }
+
+        function populatePersonaSelect() {
+            const select = document.getElementById('personaSelect');
+            Object.keys(PERSONAS).forEach(key => {
+                const persona = PERSONAS[key];
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = `${persona.emoji} ${persona.name} — ${persona.title}`;
+                select.appendChild(option);
+            });
+        }
+
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+
+                recognition.onstart = () => {
+                    isListening = true;
+                    updateVoiceButton();
+                    updateStatus('🎤 Listening...');
+                };
+
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    document.getElementById('userInput').value = transcript;
+                    updateStatus(`✅ Heard: "${transcript}"`);
+                    setTimeout(() => updateStatus(''), 3000);
+                };
+
+                recognition.onerror = (event) => {
+                    isListening = false;
+                    updateVoiceButton();
+                    updateStatus(`❌ Error: ${event.error}`);
+                    setTimeout(() => updateStatus(''), 3000);
+                };
+
+                recognition.onend = () => {
+                    isListening = false;
+                    updateVoiceButton();
+                };
+            } else {
+                document.getElementById('voiceBtn').disabled = true;
+                updateStatus('⚠️ Speech recognition not supported');
+            }
+        }
+
+        function initEventListeners() {
+            document.getElementById('personaSelect').addEventListener('change', (e) => {
+                currentPersona = e.target.value;
+                resetChat();
+            });
+
+            document.getElementById('sendBtn').addEventListener('click', handleSend);
+            
+            document.getElementById('userInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                }
+            });
+
+            document.getElementById('voiceBtn').addEventListener('click', toggleListening);
+            document.getElementById('stopSpeakBtn').addEventListener('click', stopSpeaking);
+        }
+
+        function resetChat() {
+            messages = [
+                { role: 'system', content: EVENT_CONTEXT },
+                { role: 'assistant', content: PERSONAS[currentPersona].intro, persona: currentPersona }
+            ];
+            renderChat();
+        }
+
+        function renderChat() {
+            const container = document.getElementById('chatContainer');
+            container.innerHTML = '';
+
+            messages.forEach(msg => {
+                const bubble = document.createElement('div');
+                bubble.className = 'chat-bubble';
+
+                if (msg.role === 'system') {
+                    bubble.className += ' system-bubble';
+                    bubble.innerHTML = `<span class="bubble-text">${msg.content}</span>`;
+                } else if (msg.role === 'user') {
+                    bubble.className += ' user-bubble';
+                    bubble.innerHTML = `
+                        <span class="bubble-name">You</span>
+                        <span class="bubble-text">${msg.content}</span>
+                    `;
+                } else {
+                    const persona = PERSONAS[msg.persona || currentPersona];
+                    bubble.className += ' bot-bubble';
+                    bubble.style.setProperty('--persona-color', persona.color);
+                    bubble.innerHTML = `
+                        <span class="bubble-name">${persona.emoji} ${persona.name}</span>
+                        <span class="bubble-text">${msg.content}</span>
+                    `;
+                }
+
+                container.appendChild(bubble);
+            });
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function getBotReply(msg) {
+            const persona = PERSONAS[currentPersona];
+            const msgLower = msg.toLowerCase();
+
+            // Check knowledge base
+            for (const [topic, response] of Object.entries(persona.knowledge)) {
+                if (msgLower.includes(topic)) {
+                    return response;
+                }
+            }
+
+            // Handle questions
+            const questionWords = ['how', 'what', 'why', 'when', 'where', 'tell me', 'explain'];
+            if (questionWords.some(word => msgLower.includes(word))) {
+                const deepWords = ['secret', 'future', 'plan', 'strategy', 'next', 'upcoming', 'inside', 'confidential'];
+                if (deepWords.some(word => msgLower.includes(word))) {
+                    return `That's a strategic question! Come to PERPLEXED on 13th November to dive deep into our ${persona.title} insights and exclusive case studies. I'll be there to answer all your questions in person! 🎯`;
+                }
+
+                if (currentPersona === 'CFO' && ['money', 'finance', 'cost', 'price', 'financial'].some(w => msgLower.includes(w))) {
+                    return "Our financial health is strong. We focus on sustainable growth, smart investments, and delivering value to stakeholders. Ask me about revenue, profits, budget, or our investment strategy!";
+                } else if (currentPersona === 'COO' && ['process', 'work', 'deliver', 'manage', 'operational'].some(w => msgLower.includes(w))) {
+                    return "We've built robust systems for scalability. From supply chain to customer delivery, every process is optimized for efficiency. Ask about operations, delivery, scale, or technology!";
+                } else if (currentPersona === 'HR' && ['employee', 'people', 'work', 'job', 'career', 'talent'].some(w => msgLower.includes(w))) {
+                    return "Our people are our greatest asset. We invest heavily in talent development, culture, and employee wellbeing. Ask me about hiring, retention, culture, or workplace benefits!";
+                } else if (currentPersona === 'MARKETING' && ['customer', 'brand', 'campaign', 'market', 'advertising'].some(w => msgLower.includes(w))) {
+                    return "We're building a brand that stands for innovation and trust. Our campaigns blend data with creativity to reach the right audience. Ask about branding, campaigns, or digital marketing!";
+                }
+            }
+
+            // Greetings
+            if (['hi', 'hello', 'hey', 'greetings', 'namaste'].some(w => msgLower.includes(w))) {
+                return `Hello! Great to connect with you. I'm ${persona.name}, ${persona.title} at PERPLEXED. What would you like to know about my work?`;
+            }
+
+            // Thanks
+            if (['thank', 'thanks', 'appreciate', 'grateful'].some(w => msgLower.includes(w))) {
+                return "You're welcome! Feel free to ask me anything about my department or visit us at the PERPLEXED event on 13th November for more insights! 😊";
+            }
+
+            // Default quote
+            return persona.quotes[Math.floor(Math.random() * persona.quotes.length)];
+        }
+
+        function speak(text) {
+            const synth = window.speechSynthesis;
+            synth.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            const persona = PERSONAS[currentPersona];
+            
+            utterance.pitch = persona.voicePitch;
+            utterance.rate = persona.voiceRate;
+            utterance.lang = 'en-US';
+
+            utterance.onstart = () => {
+                isSpeaking = true;
+                updateStopButton();
+            };
+
+            utterance.onend = () => {
+                isSpeaking = false;
+                updateStopButton();
+            };
+
+            synth.speak(utterance);
+        }
+
+        function stopSpeaking() {
+            window.speechSynthesis.cancel();
+            isSpeaking = false;
+            updateStopButton();
+        }
+
+        function toggleListening() {
+            if (!recognition) return;
+
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        }
+
+        function handleSend() {
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            messages.push({ role: 'user', content: text });
+            renderChat();
+
+            setTimeout(() => {
+                const reply = getBotReply(text);
+                messages.push({ role: 'assistant', content: reply, persona: currentPersona });
+                renderChat();
+                speak(reply);
+            }, 300);
+
+            input.value = '';
+        }
+
+        function updateVoiceButton() {
+            const btn = document.getElementById('voiceBtn');
+            const icon = document.getElementById('micIcon');
+            const text = document.getElementById('voiceBtnText');
+
+            if (isListening) {
+                btn.classList.add('listening');
+                icon.textContent = '⏹️';
+                text.textContent = 'Stop Recording';
+            } else {
+                btn.classList.remove('listening');
+                icon.textContent = '🎤';
+                text.textContent = 'Start Recording';
+            }
+        }
+
+        function updateStopButton() {
+            const btn = document.getElementById('stopSpeakBtn');
+            const icon = document.getElementById('speakerIcon');
+            const text = document.getElementById('stopSpeakText');
+
+            if (isSpeaking) {
+                btn.classList.add('speaking');
+                icon.textContent = '🔊';
+                text.textContent = 'Stop Speaking';
+            } else {
+                btn.classList.remove('speaking');
+                icon.textContent = '🔇';
+                text.textContent = 'Muted';
+            }
+        }
+
+        function updateStatus(text) {
+            document.getElementById('statusText').textContent = text;
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
